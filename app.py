@@ -113,8 +113,6 @@ def index():
 def send_credits():
     return jsonify(credits)
 
-retrieve_credits()
-
 last_modified = 0
 
 def check_credits():

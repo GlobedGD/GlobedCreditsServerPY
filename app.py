@@ -63,12 +63,14 @@ def retrieve_credits():
                 new_credits[role][index] = temp_cache[new_credit["accountID"]]
                 continue
 
+            req_start_time = time.time()
             response_text = requests.post(GJ_USER_INFO_URL, data={
                 "secret": "Wmfd2893gb7",
                 "targetAccountID": new_credit["accountID"]
             }, headers={
                 "User-Agent": ""
             }).text
+            req_duration = time.time() - req_start_time
 
             if response_text.split(":")[1] == " 1015": # rate limiting!! (unlikely because we sleep in between requests but whatever)
                 print("somehow we're getting rate limited! ending cache update")
@@ -94,7 +96,7 @@ def retrieve_credits():
             temp_cache[new_credit["accountID"]] = new_credit
             new_credits[role][index] = new_credit
 
-            time.sleep(0.5)
+            time.sleep(2 - req_duration)
     
     global credits
     credits = new_credits

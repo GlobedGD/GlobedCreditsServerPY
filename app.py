@@ -76,6 +76,10 @@ def retrieve_credits():
                 print("somehow we're getting rate limited! ending cache update")
                 return
             
+            if response_text.split(":")[1] == " 1006": # ip blocked!! please setup a proxy
+                print("error code 1006 recieved from boomlings. i'm sure you know what to do now")
+                return
+            
             response = parse_key_map(response_text)
 
             color1 = int(response["10"])

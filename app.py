@@ -135,6 +135,8 @@ def check_credits(credits):
             retrieve_credits(credits)
             last_refreshed = time.time()
 
+        time.sleep(1)
+
 process = None
 if is_running_from_reloader() or not DEBUG:
     process = Process(target=check_credits, args=(credits,))

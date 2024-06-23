@@ -111,8 +111,6 @@ def index():
 
 @app.get("/credits")
 def send_credits():
-    print('hi')
-    print(credits)
     return jsonify(credits)
 
 last_modified = 0

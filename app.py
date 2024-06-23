@@ -132,11 +132,13 @@ def check_credits():
             retrieve_credits()
             last_refreshed = time.time()
 
+process = None
+if is_running_from_reloader() or not DEBUG:
+    process = Process(target=check_credits)
+    process.start()
+
 if __name__ == "__main__":
-    process = None
-    if is_running_from_reloader() or not DEBUG:
-        process = Process(target=check_credits)
-        process.start()
     app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
-    if process is not None:
-        process.join()
+
+if process is not None:
+    process.join()

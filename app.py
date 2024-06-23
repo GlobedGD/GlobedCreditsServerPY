@@ -1,17 +1,19 @@
 from flask import Flask, jsonify
 import os, json, requests, time
 from werkzeug.serving import is_running_from_reloader
-from multiprocessing import Process
+from multiprocessing import Process, Manager
 
 app = Flask(__name__)
 
-credits: dict[
-    str, list[
-        dict[
-            str, str | int
-        ]
-    ]
-] = {}
+# credits: dict[
+#     str, list[
+#         dict[
+#             str, str | int
+#         ]
+#     ]
+# ] = {}
+manager = Manager()
+credits = manager.dict()
 last_refreshed: int = 0
 
 PORT = os.getenv("PORT", 8000)
@@ -24,7 +26,7 @@ def parse_key_map(key_map):
     keys_values = key_map.split(":")
     return {keys_values[i]: keys_values[i + 1] for i in range(0, len(keys_values), 2)}
 
-def retrieve_credits():
+def retrieve_credits(credits):
     if not is_running_from_reloader() and DEBUG:
         # flask's default debug functionality runs the script twice
         # while I could disable it, I don't wanna lose live reloading (in debug)
@@ -102,8 +104,9 @@ def retrieve_credits():
 
             time.sleep(2 - req_duration)
     
-    global credits
-    credits = new_credits
+    _credits = new_credits
+    for role in _credits.keys():
+        credits[role] = _credits[role]
 
 @app.get("/")
 def index():
@@ -111,11 +114,11 @@ def index():
 
 @app.get("/credits")
 def send_credits():
-    return jsonify(credits)
+    return jsonify(credits.copy())
 
 last_modified = 0
 
-def check_credits():
+def check_credits(credits):
     global last_modified
     global last_refreshed
     while True:
@@ -124,17 +127,17 @@ def check_credits():
         if modified_time > last_modified:
             last_modified = modified_time
             print("file changed! retriving credits...")
-            retrieve_credits()
+            retrieve_credits(credits)
             last_refreshed = time.time()
 
         if time.time() - last_refreshed >= 3600 * 24: # 3600 * 24 = one day (24hrs) in seconds
             print("reloading cache...")
-            retrieve_credits()
+            retrieve_credits(credits)
             last_refreshed = time.time()
 
 process = None
 if is_running_from_reloader() or not DEBUG:
-    process = Process(target=check_credits)
+    process = Process(target=check_credits, args=(credits,))
     process.start()
 
 if __name__ == "__main__":

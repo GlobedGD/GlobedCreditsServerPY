@@ -111,6 +111,8 @@ def index():
 
 @app.get("/credits")
 def send_credits():
+    print('hi')
+    print(credits)
     return jsonify(credits)
 
 last_modified = 0
@@ -140,5 +142,5 @@ if is_running_from_reloader() or not DEBUG:
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
 
-if process is not None:
+if process is not None and DEBUG:
     process.join()
